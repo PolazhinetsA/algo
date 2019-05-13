@@ -1,4 +1,4 @@
-#include <stdlib.r>
+#include <stdlib.h>
 
 enum { Tchain, Toaddr, Tfixed, Ntypes };
 
