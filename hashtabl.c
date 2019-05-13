@@ -1,3 +1,5 @@
+// not finished yet
+
 #include "hashtabl.h"
 
 typedef struct {
@@ -9,11 +11,7 @@ typedef struct {
         hf2a, hf2b;
 } hashtabl_t;
 
-#define hashfunc1(t,k) \
-(((long )(k) * (t)->hf1a + (t)->hf1b) % (t)->maxk % (t)->size)
-
-#define hashfunc2(t,k) \
-(((long )(k) * (t)->hf2a + (t)->hf2b) % (t)->maxk % (t)->size)
+void hashtabl_init_chain(hashtabl_t *, int, int (*)(void *), int);
 
 void *hashtabl_new(int type, int maxn, int (*keyf)(void *), int maxk)
 {
@@ -29,15 +27,19 @@ void *hashtabl_new(int type, int maxn, int (*keyf)(void *), int maxk)
     return this;
 }
 
-void *hashtabl_find(void *this, void *item)
+void *hashtabl_find_chain(hashtabl_t *, int);
+
+void *hashtabl_find(void *this, int key)
 {
     static const void (*find[])(hashtabl_t *, void *) =
       { hashtabl_find_chain,
         hashtabl_find_oaddr,
         hashtabl_find_fixed };
 
-    return find[((hashtabl_t *)this)->type](this, item);
+    return find[((hashtabl_t *)this)->type](this, key);
 }
+
+void hashtabl_insert_chain(hashtabl_t *, void *);
 
 void hashtabl_insert(void *this, void *item)
 {
@@ -48,6 +50,24 @@ void hashtabl_insert(void *this, void *item)
 
     insert[((hashtabl_t *)this)->type](this, item);
 }
+
+void hashtabl_delete_chain(hashtabl_t *, int);
+
+void hashtabl_delete(void *this, int key)
+{
+    static const void (*delete[])(hashtabl_t *, void *) =
+      { hashtabl_delete_chain,
+        hashtabl_delete_oaddr,
+        hashtabl_delete_fixed };
+
+    delete[((hashtabl_t *)this)->type](this, key);
+}
+
+#define hashfunc1(t,k) \
+(((long )(k) * (t)->hf1a + (t)->hf1b) % (t)->maxk % (t)->size)
+
+#define hashfunc2(t,k) \
+(((long )(k) * (t)->hf2a + (t)->hf2b) % (t)->maxk % (t)->size)
 
 void hashtabl_init_chain(hashtabl_t *this, int maxn,
                          int (*keyf)(void *), int maxk)
@@ -67,7 +87,7 @@ void ***hashtabl_search_chain(hashtabl_t *this, int key)
 {
     void ***ptr = &this->tabl[hashfunc1(this,key)];
 
-    while (*ptr && this->keyf((*ptr)[Item]) != this->keyf(item))
+    while (*ptr && this->keyf((*ptr)[Item]) != key)
         ptr = &(*ptr)[Next];
 }
 
@@ -86,4 +106,13 @@ void hashtabl_insert_chain(hashtabl_t *this, void *item)
     }
 }
 
-// not finished yet
+void hashtabl_delete_chain(hashtabl_t *this, int key)
+{
+    void ***ptr = hashtabl_search_chain(this, key),
+         *old = *ptr;
+
+    if (old) {
+       *ptr = old[Next];
+       free(old);
+    }
+}
