@@ -89,6 +89,8 @@ void ***hashtabl_search_chain(hashtabl_t *this, int key)
 
     while (*ptr && this->keyf((*ptr)[Item]) != key)
         ptr = &(*ptr)[Next];
+
+    return ptr;
 }
 
 void *hashtabl_find_chain(hashtabl_t *this, int key)
