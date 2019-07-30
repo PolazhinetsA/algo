@@ -1,7 +1,5 @@
 #include "htbl.h"
 
-#define chain_free(this) { while (this) chain_del(this); }
-
 typedef struct htbl {
     void **ptr;
     int    sz;
