@@ -1,30 +1,13 @@
 #include "htbl.h"
 
-typedef struct chain {
-    void *item;
-    struct chain *next;
-} chain_t;
-
-#define chain_add(this, item) {                 \
-    chain_t *__this = malloc(sizeof(chain_t));  \
-    __this->item = (item);                      \
-    __this->next = (this);                      \
-    (this) = __this;                            \
-}
-
-#define chain_del(this) {               \
-    chain_t *__this = (this);           \
-    (this) = ((chain_t *)(this))->next; \
-    free(__this);                       \
-}
-
 #define chain_free(this) { while (this) chain_del(this); }
 
 typedef struct htbl {
-    chain_t **chain;
-    int       sz;
-    int     (*hash)(void *, int);
-    int     (*cmp)(void *, void *);
+    void **ptr;
+    int    sz;
+    int  (*hash)(void *, int);
+    int  (*cmp)(void *, void *);
+    int    deleted;
 } htbl_t;
 
 void *htbl_new(int sz, int (*hash)(void *, int),
@@ -32,7 +15,7 @@ void *htbl_new(int sz, int (*hash)(void *, int),
 {
     htbl_t *this = calloc(1, sizeof(htbl_t));
 
-    this->chain = calloc(sz, sizeof(chain_t *));
+    this->ptr = calloc(sz, sizeof(void *));
     this->sz = sz;
     this->hash = hash;
     this->cmp = cmp;
@@ -40,67 +23,63 @@ void *htbl_new(int sz, int (*hash)(void *, int),
     return this;
 }
 
-void *htbl_free(void *_this, void (*item_free)(void *))
+void htbl_free(void *_this, void (*item_free)(void *))
 {
     htbl_t *this = _this;
 
-    for (int i = 0; i < this->sz; ++i) {
-        if (item_free) {
-            for (chain_t *pitem = this->chain[i]; pitem; pitem = pitem->next)
-                item_free(pitem->item);
-        }
-        chain_free(this->chain[i]);
+    if (item_free) {
+        for (int i = 0; i < this->sz; ++i)
+            this->ptr[i] ? item_free(this->ptr[i]) : 0;
     }
-    free(this->chain);
+    free(this->ptr);
     free(this);
 }
 
-void ***htbl_find_(void *_this, void *item)
+void **htbl_find_(void *_this, void *item)
 {
     htbl_t *this = _this;
+    int h, i, j;
+    void **pdel = NULL;
 
-    int idx = this->hash(item, this->sz);
-    chain_t **ret = &this->chain[idx];
-    while(*ret && this->cmp((*ret)->item, item)) {
-        ret = &(*ret)->next;
-    }
-    return ret;
+    for (i = h = this->hash(item, this->sz), j = 0;
+         j < this->sz && this->ptr[i]
+         && (this->ptr[i] == &this->deleted
+             && (!pdel ? (pdel = &this->ptr[i]) : 1)
+             || this->cmp(this->ptr[i], item));
+         ++j, i = (h + j*j) % this->sz);
+
+    return j == this->sz ? pdel
+                         : this->ptr[i] || !pdel ? &this->ptr[i]
+                                                 : pdel;
 }
 
 void *htbl_find(void *_this, void *item)
 {
-    void ***pitem = htbl_find_(_this, item);
-    return *pitem ? **pitem : NULL;
-}
-
-void htbl_add(void *_this, void *item)
-{
-    if (htbl_find(_this, item)) return;
-
     htbl_t *this = _this;
 
-    int idx = this->hash(item, this->sz);
-    chain_add(this->chain[idx], item);
+    void **pptr = htbl_find_(this, item);
+    return pptr && *pptr != &this->deleted ? *pptr
+                                           : NULL;
+}
+
+int htbl_add(void *_this, void *item)
+{
+    htbl_t *this = _this;
+
+    void **pptr = htbl_find_(this, item);
+    if (!pptr)
+        return -1;
+    if (*pptr == NULL || *pptr == &this->deleted)
+        *pptr = item;
+    return 0;
 }
 
 void htbl_del(void *_this, void *item)
 {
-    void ***ppitem = htbl_find_(_this, item);
-    if (*ppitem) chain_del(*ppitem);
-}
-
-void htbl_print(void *_this, int (*print)(void *, FILE *), FILE *file)
-{
     htbl_t *this = _this;
 
-    for (int i = 0; i < this->sz; ++i) {
-        for (chain_t *pitem = this->chain[i]; pitem; pitem = pitem->next) {
-            fputs("-[", file);
-            print(pitem->item, file);
-            fputc(']', file);
-        }
-        fputc('\n', file);
-    }
+    void **pptr = htbl_find_(_this, item);
+    if (pptr && *pptr) *pptr = &this->deleted;
 }
 
 int memhash(const char *ptr, int len, int rng)
