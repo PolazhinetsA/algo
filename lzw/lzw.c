@@ -42,9 +42,11 @@ void encode(FILE *in, FILE *out)
     dict_t *dict = dict_new();
     void *bout = bopen(out);
 
-    for (char buf[0x1000]; fread(buf, 1, 1, in); ) {
-        int len = 1;
-        do buf[len++] = fgetc(in); while (-1 != dict_find(dict, buf, len));
+    for (int ch = 0; ch != EOF; ) {
+        char buf[0x1000];
+        int len = 0;
+        do buf[len++] = ch = fgetc(in);
+            while (ch != EOF && -1 != dict_find(dict, buf, len));
         ungetc(buf[--len], in);
         bput(bout, dict_find(dict, buf, len), 12);
         dict_add(dict, buf, len+1);
