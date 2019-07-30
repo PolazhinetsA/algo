@@ -10,8 +10,7 @@ typedef struct htbl {
     int    deleted;
 } htbl_t;
 
-void *htbl_new(int sz, int (*hash)(void *, int),
-                           int (*cmp)(void *, void *))
+void *htbl_new(int sz, int (*hash)(void *, int), int (*cmp)(void *, void *))
 {
     htbl_t *this = calloc(1, sizeof(htbl_t));
 
