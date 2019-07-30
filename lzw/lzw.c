@@ -47,7 +47,7 @@ void encode(FILE *in, FILE *out)
         int len = 0;
         do buf[len++] = ch = fgetc(in);
             while (ch != EOF && -1 != dict_find(dict, buf, len));
-        ungetc(buf[--len], in);
+        ungetc((unsigned char )buf[--len], in);
         bput(bout, dict_find(dict, buf, len), 12);
         dict_add(dict, buf, len+1);
     }
