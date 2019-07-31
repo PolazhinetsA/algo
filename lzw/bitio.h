@@ -2,6 +2,7 @@
 #define BITIO_H
 
 #include <stdio.h>
+#include <stdlib.h>
 
 void *bopen  (FILE *file);
 int   bget   (void *this, unsigned *dst, unsigned len);
