@@ -42,11 +42,14 @@ void **htbl_find_(void *_this, void *item)
     void **pdel = NULL;
 
     for (i = h = this->hash(item, this->sz), j = 0;
-         j < this->sz && this->ptr[i]
-         && (this->ptr[i] == &this->deleted
-             && (!pdel ? (pdel = &this->ptr[i]) : 1)
-             || this->cmp(this->ptr[i], item));
-         ++j, i = (h + j*j) % this->sz);
+         j < this->sz && this->ptr[i];
+         ++j, i = (h + j*j) % this->sz)
+    {
+        if (this->ptr[i] == &this->deleted)
+            if (!pdel) pdel = &this->ptr[i]; else;
+        else
+            if (!this->cmp(this->ptr[i], item)) break;
+    }
 
     return j == this->sz ? pdel
                          : this->ptr[i] || !pdel ? &this->ptr[i]
