@@ -41,7 +41,7 @@ void **htbl_find_(void *_this, void *item)
     int h, i, j;
     void **pdel = NULL;
 
-    for (i = h = this->hash(item, this->sz), j = this->sz;
+    for (i = this->hash(item, this->sz), h = i ? i : 1, j = this->sz;
          j && this->ptr[i];
          --j, i = (i+h) % this->sz)
     {
