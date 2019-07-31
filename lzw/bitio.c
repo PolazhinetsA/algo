@@ -23,8 +23,9 @@ int bget(void *_this, unsigned *pbits, unsigned nbits)
     bfile_t *this = _this;
 
     nbits = nbits <= uintwid ? nbits : uintwid;
-    *pbits = (this->ipos != uintwid ? this->ibuf >> this->ipos : 0)
-             & ((nbits != uintwid ? 1 << nbits : 0) - 1);
+    *pbits = (this->ipos < uintwid)
+           ? (this->ibuf >> this->ipos) & ((unsigned )-1 >> (uintwid - nbits))
+           : 0;
     this->ipos += nbits;
     if (this->ipos <= uintwid)
         return 0;
@@ -35,7 +36,7 @@ int bget(void *_this, unsigned *pbits, unsigned nbits)
     if (rcnt < this->ipos)
         return -1;
 
-    *pbits |= (this->ibuf & ((this->ipos != uintwid ? 1 << this->ipos : 0) - 1))
+    *pbits |= (this->ibuf & ((unsigned )-1 >> (uintwid - this->ipos)))
               << (nbits - this->ipos);
     this->ibuf <<= uintwid - rcnt;
     this->ipos += uintwid - rcnt;
