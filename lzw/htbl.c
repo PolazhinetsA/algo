@@ -25,8 +25,11 @@ void htbl_free(void *_this, void (*item_free)(void *))
     htbl_t *this = _this;
 
     if (item_free) {
-        for (int i = 0; i < this->sz; ++i)
-            this->ptr[i] ? item_free(this->ptr[i]) : 0;
+        for (int i = 0; i < this->sz; ++i) {
+            if (this->ptr[i] == NULL || this->ptr[i] == &this->deleted)
+                continue;
+            item_free(this->ptr[i]);
+        }
     }
     free(this->ptr);
     free(this);
