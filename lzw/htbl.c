@@ -41,9 +41,9 @@ void **htbl_find_(void *_this, void *item)
     int h, i, j;
     void **pdel = NULL;
 
-    for (i = h = this->hash(item, this->sz), j = 0;
-         j < this->sz && this->ptr[i];
-         ++j, i = (h + j*j) % this->sz)
+    for (i = h = this->hash(item, this->sz), j = this->sz;
+         j && this->ptr[i];
+         --j, i = (i+h) % this->sz)
     {
         if (this->ptr[i] == &this->deleted)
             if (!pdel) pdel = &this->ptr[i]; else;
@@ -51,9 +51,9 @@ void **htbl_find_(void *_this, void *item)
             if (!this->cmp(this->ptr[i], item)) break;
     }
 
-    return j == this->sz ? pdel
-                         : this->ptr[i] || !pdel ? &this->ptr[i]
-                                                 : pdel;
+    return !j ? pdel
+              : this->ptr[i] || !pdel ? &this->ptr[i]
+                                      : pdel;
 }
 
 void *htbl_find(void *_this, void *item)
