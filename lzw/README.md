@@ -2,6 +2,6 @@
 
 usage:
 ```
-./lzw enc <infile >outfile
-./lzw dec <infile >outfile
+./test enc <infile >outfile
+./test dec <infile >outfile
 ```
