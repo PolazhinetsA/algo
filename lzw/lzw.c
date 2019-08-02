@@ -1,25 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "bitio.h"
+#include "lzw.h"
 #include "htbl.h"
-
-void encode(FILE *, FILE *);
-void decode(FILE *, FILE *);
-
-int main(int argc, char **argv)
-{
-    if (argc != 2 || strcmp(argv[1], "enc") && strcmp(argv[1], "dec")) {
-        fputs("usage:\n"
-              "./lzw enc <infile >outfile\n"
-              "./lzw dec <infile >outfile\n", stderr);
-        return 1;
-    }
-    switch (argv[1][0]) {
-        case 'e': encode(stdin, stdout); break;
-        case 'd': decode(stdin, stdout); break;
-    }
-}
+#include "bitio.h"
 
 enum { Prev, Suff };
 

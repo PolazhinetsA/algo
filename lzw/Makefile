@@ -1,3 +1,3 @@
-lzw: lzw.c bitio.h bitio.c htbl.h htbl.c
-	gcc -o lzw lzw.c bitio.c htbl.c
+test: test.c lzw.h lzw.c htbl.h htbl.c bitio.h bitio.c
+	gcc -o test test.c lzw.c htbl.c bitio.c
 
