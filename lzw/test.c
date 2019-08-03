@@ -9,7 +9,7 @@ int main(int argc, char **argv)
         return 1;
     }
     switch (argv[1][0]) {
-        case 'e': encode(stdin, stdout); break;
-        case 'd': decode(stdin, stdout); break;
+        case 'e': lzw_encode(stdin, stdout); break;
+        case 'd': lzw_decode(stdin, stdout); break;
     }
 }

@@ -15,7 +15,7 @@ dict_t *dict_free(dict_t *);
 void dict_add(dict_t *, int, int);
 int dict_find(dict_t *, int, int);
 
-void encode(FILE *in, FILE *out)
+void lzw_encode(FILE *in, FILE *out)
 {
     dict_t *dict = dict_new();
     void *bout = bopen(out);
@@ -34,7 +34,7 @@ void encode(FILE *in, FILE *out)
     dict_free(dict);
 }
 
-void decode(FILE *in, FILE *out)
+void lzw_decode(FILE *in, FILE *out)
 {
     dict_t *dict = dict_new();
     void *bin = bopen(in);
