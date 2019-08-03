@@ -6,3 +6,5 @@ Usage:
 ./lzwarc -ext archive [dest.dir.path]
 ./lzwarc -lst archive
 ```
+
+When built under non-UNIX-like OS, some facilities will be omited.
