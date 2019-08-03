@@ -3,21 +3,22 @@
 #include <string.h>
 #include "futils.h"
 
-#define USAGE {                                         \
-    fputs("usage:\n"                                    \
-          "./arx -arc archivename file1 file2 ...\n"    \
-          "./arx -ext archivename [dest.dir.path]\n",   \
-          stderr);                                      \
-    return 1;                                           \
+#define USAGE {                                     \
+    fputs("usage:\n"                                \
+          "./arx -arc archive file1 file2 ...\n"    \
+          "./arx -ext archive [dest.dir.path]\n"    \
+          "./arx -lst archive\n",                   \
+          stderr);                                  \
+    return 1;                                       \
 }
-
 
 void archive(char **ppath);
 void extract(char **ppath);
+void lstcont(char **ppath);
 
-enum { Arc, Ext };
+void (*routine[])(char **) = { archive, extract, lstcont };
 
-void (*routine[])(char **) = { archive, extract };
+enum { Arc, Ext, Lst };
 
 int main(int argc, char **argv)
 {
@@ -30,6 +31,8 @@ int main(int argc, char **argv)
         job = Arc;
     else if(!strcmp(jobstr, "-ext"))
         job = Ext;
+    else if(!strcmp(jobstr, "-lst"))
+        job = Lst;
     else
         USAGE;
 
@@ -67,8 +70,8 @@ void extract(char **ppath)
 {
     FILE *farc = fopen(ppath[0], "r");
 
-    char path_[0x400], *_path;
-    strcpy(path_, ppath[1]);
+    char path_[0x100], *_path;
+    strcpy(path_, ppath[1] ? ppath[1] : "");
     _path = path_ + strlen(path_);
 
     while (fgets0(_path, farc), *_path)
@@ -80,6 +83,21 @@ void extract(char **ppath)
         fread(&sz, sizeof(size_t), 1, farc);
         fcopy(file, farc, sz);
         fclose(file);
+    }
+
+    fclose(farc);
+}
+
+void lstcont(char **ppath)
+{
+    FILE *farc = fopen(ppath[0], "r");
+
+    for (char name[0x100]; fgets0(name, farc), *name; )
+    {
+        size_t sz;
+        fread(&sz, sizeof(size_t), 1, farc);
+        printf("%12lu bytes: %s\n", sz, name);
+        fseek(farc, sz, SEEK_CUR);
     }
 
     fclose(farc);
