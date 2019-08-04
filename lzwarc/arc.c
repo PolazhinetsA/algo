@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <stdint.h>
 #include "futils.h"
 #include "lzw.h"
 
@@ -49,7 +49,7 @@ void archive(char **ppath)
     for (; *ppath; ++ppath)
     {
         FILE *file, *tfile;
-        size_t sz, sz_;
+        uint32_t sz, sz_;
 
         file = fopen(*ppath, "rb");
         tfile = tmpfile();
@@ -66,8 +66,8 @@ void archive(char **ppath)
         rewind(file);
 
         fputs0(*ppath, farc);
-        fwrite(&sz, sizeof(size_t), 1, farc);
-        fwrite(&sz_, sizeof(size_t), 1, farc);
+        fwrite(&sz, sizeof(uint32_t), 1, farc);
+        fwrite(&sz_, sizeof(uint32_t), 1, farc);
         fcopy(farc, file, sz_);
 
         fclose(file);
@@ -85,10 +85,10 @@ void extract(char **ppath)
     while (fgets0(_path, farc), *_path)
     {
         FILE *file, *tfile;
-        size_t sz, sz_;
+        uint32_t sz, sz_;
 
-        fread(&sz, sizeof(size_t), 1, farc);
-        fread(&sz_, sizeof(size_t), 1, farc);
+        fread(&sz, sizeof(uint32_t), 1, farc);
+        fread(&sz_, sizeof(uint32_t), 1, farc);
         file = fopen_mkdir(path_, "wb");
         if (sz_ < sz) {
             tfile = tmpfile();
@@ -112,10 +112,10 @@ void lstcont(char **ppath)
     FILE *farc = fopen(ppath[0], "rb");
     for (char name[0x100]; fgets0(name, farc), *name; )
     {
-        size_t sz, sz_;
-        fread(&sz, sizeof(size_t), 1, farc);
-        fread(&sz_, sizeof(size_t), 1, farc);
-        printf(" %12lu | %12lu | %s\n", sz, sz_, name);
+        uint32_t sz, sz_;
+        fread(&sz, sizeof(uint32_t), 1, farc);
+        fread(&sz_, sizeof(uint32_t), 1, farc);
+        printf(" %12u | %12u | %s\n", sz, sz_, name);
         fseek(farc, sz_, SEEK_CUR);
     }
     fclose(farc);
