@@ -11,7 +11,7 @@ typedef struct {
 } dict_t;
 
 dict_t *dict_new();
-dict_t *dict_free(dict_t *);
+void dict_free(dict_t *);
 void dict_add(dict_t *, int, int);
 int dict_find(dict_t *, int, int);
 
@@ -74,7 +74,7 @@ dict_t *dict_new()
     return this;
 }
 
-dict_t *dict_free(dict_t *this)
+void dict_free(dict_t *this)
 {
     htbl_free(this->htbl, NULL);
     free(this->ent);
