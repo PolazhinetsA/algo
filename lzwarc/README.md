@@ -2,10 +2,10 @@
 
 Usage:
 
-`./lzwarc a archivename file1 file2 ...` to archive
+`$ ./lzwarc a archivename file1 file2 ...` to archive
 
-`./lzwarc e archivename [dest.dir.path]` to extract
+`$ ./lzwarc e archivename [dest.dir.path]` to extract
 
-`./lzwarc l archivename` to list contents
+`$ ./lzwarc l archivename` to list contents
 
 When built under non-UNIX-like OS, some facilities will be omited.
