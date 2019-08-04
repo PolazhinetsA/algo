@@ -4,43 +4,37 @@
 #include "futils.h"
 #include "lzw.h"
 
-#define USAGE {                                     \
-    fputs("usage:\n"                                \
-          "./lzwarc -arc archive file1 file2 ...\n" \
-          "./lzwarc -ext archive [dest.dir.path]\n" \
-          "./lzwarc -lst archive\n",                \
-          stderr);                                  \
-    return 1;                                       \
+#define USAGE {                                         \
+    fputs("usage:\n"                                    \
+          "./lzwarc a archivename file1 file2 ...\n"    \
+          "./lzwarc e archivename [dest.dir.path]\n"    \
+          "./lzwarc l archivename\n",                   \
+          stderr);                                      \
+    return 1;                                           \
 }
 
 void archive(char **ppath);
 void extract(char **ppath);
 void lstcont(char **ppath);
 
-void (*routine[])(char **) = { archive, extract, lstcont };
-
-enum { Arc, Ext, Lst };
-
 int main(int argc, char **argv)
 {
-    if (argc < 3)
-        USAGE;
+    if (argc < 3) USAGE;
 
-    int job;
-    char *jobstr = argv[1];
-    if (!strcmp(jobstr, "-arc"))
-        job = Arc;
-    else if(!strcmp(jobstr, "-ext"))
-        job = Ext;
-    else if(!strcmp(jobstr, "-lst"))
-        job = Lst;
-    else
-        USAGE;
-
-    if (job == Arc && argc < 4)
-        USAGE;
-
-    routine[job](argv+2);
+    switch (*argv[1]) {
+        case 'a':
+            if (argc < 4) USAGE;
+            archive(argv+2);
+            break;
+        case 'e':
+            extract(argv+2);
+            break;
+        case 'l':
+            lstcont(argv+2);
+            break;
+        default:
+            USAGE;
+    }
 }
 
 void archive(char **ppath)
