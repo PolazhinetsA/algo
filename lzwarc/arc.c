@@ -45,13 +45,13 @@ int main(int argc, char **argv)
 
 void archive(char **ppath)
 {
-    FILE *farc = fopen(*ppath++, "w");
+    FILE *farc = fopen(*ppath++, "wb");
     for (; *ppath; ++ppath)
     {
         FILE *file, *tfile;
         size_t sz, sz_;
 
-        file = fopen(*ppath, "r");
+        file = fopen(*ppath, "rb");
         tfile = tmpfile();
         lzw_encode(file, tfile);
         sz = ftell(file);
@@ -81,7 +81,7 @@ void extract(char **ppath)
     strcpy(path_, ppath[1] ? ppath[1] : "");
     _path = path_ + strlen(path_);
 
-    FILE *farc = fopen(ppath[0], "r");
+    FILE *farc = fopen(ppath[0], "rb");
     while (fgets0(_path, farc), *_path)
     {
         FILE *file, *tfile;
@@ -89,7 +89,7 @@ void extract(char **ppath)
 
         fread(&sz, sizeof(size_t), 1, farc);
         fread(&sz_, sizeof(size_t), 1, farc);
-        file = fopen_mkdir(path_, "w");
+        file = fopen_mkdir(path_, "wb");
         if (sz_ < sz) {
             tfile = tmpfile();
             fcopy(tfile, farc, sz_);
@@ -109,7 +109,7 @@ void lstcont(char **ppath)
     printf("original size | arhived size | path/filename\n"
            "--------------|--------------|--------------\n");
 
-    FILE *farc = fopen(ppath[0], "r");
+    FILE *farc = fopen(ppath[0], "rb");
     for (char name[0x100]; fgets0(name, farc), *name; )
     {
         size_t sz, sz_;
