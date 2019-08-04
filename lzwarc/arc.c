@@ -7,7 +7,7 @@
 #define USAGE {                                         \
     fputs("usage:\n"                                    \
           "./lzwarc a archivename file1 file2 ...\n"    \
-          "./lzwarc e archivename [dest.dir.path]\n"    \
+          "./lzwarc x archivename [dest.dir.path]\n"    \
           "./lzwarc l archivename\n",                   \
           stderr);                                      \
     return 1;                                           \
@@ -26,7 +26,7 @@ int main(int argc, char **argv)
             if (argc < 4) USAGE;
             archive(argv+2);
             break;
-        case 'e':
+        case 'x':
             extract(argv+2);
             break;
         case 'l':
