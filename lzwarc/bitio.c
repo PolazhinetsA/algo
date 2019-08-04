@@ -11,11 +11,14 @@ typedef struct {
 void *bopen(FILE *file)
 {
     bfile_t *this = malloc(sizeof(bfile_t));
+
     this->file = file;
     this->ibuf = 0;
     this->ipos = UINTWID;
     this->obuf = 0;
     this->opos = 0;
+
+    return this;
 }
 
 int bget(void *_this, unsigned *pbits, unsigned nbits)
