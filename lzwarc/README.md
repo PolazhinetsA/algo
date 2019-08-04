@@ -4,7 +4,7 @@ Usage:
 
 `$ ./lzwarc a archivename file1 file2 ...` to archive
 
-`$ ./lzwarc e archivename [dest.dir.path]` to extract
+`$ ./lzwarc x archivename [dest.dir.path]` to extract
 
 `$ ./lzwarc l archivename` to list contents
 
