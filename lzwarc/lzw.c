@@ -2,6 +2,8 @@
 #include "htbl.h"
 #include "bitio.h"
 
+#define DICTSIZE 0x4000
+
 enum { Prev, Suff };
 
 typedef struct {
@@ -20,13 +22,18 @@ void lzw_encode(FILE *in, FILE *out)
     dict_t *dict = dict_new();
     void *bout = bopen(out);
 
-    for (int prev, next, ch = 0; ch != EOF; ) {
+    for (int prev, next, ch = 0, nbits = 9, stop = 0x100; ch != EOF; )
+    {
         next = -1;
-        do ch = fgetc(in); while (ch != EOF
-            && -1 != (next = dict_find(dict, prev = next, ch)));
-        bput(bout, prev, 12);
-        dict_add(dict, prev, ch);
-        ungetc(ch, in);
+        while (EOF != (ch = fgetc(in)) &&
+                -1 != (next = dict_find(dict, prev = next, ch)));
+        if (prev >= stop) {
+            bput(bout, stop, nbits);
+            ++nbits;
+            stop <<= 1;
+        }
+        bput(bout, prev, nbits);
+        dict_add(dict, prev, ungetc(ch, in));
     }
     bflush(bout);
 
@@ -39,8 +46,17 @@ void lzw_decode(FILE *in, FILE *out)
     dict_t *dict = dict_new();
     void *bin = bopen(in);
 
-    for (int prev = -1, suff, next; -1 != bget(bin, &next, 12); prev = next)
+    for(int prev = -1, suff, next, nbits = 9, stop = 0x100;
+        -1 != bget(bin, &next, nbits);
+        prev = next)
     {
+        if (next == stop) {
+            ++nbits;
+            stop <<= 1;
+            next = prev;
+            continue;
+        }
+
         int add = next == dict->nent;
         if (add) dict_add(dict, prev, suff);
 
@@ -51,7 +67,8 @@ void lzw_decode(FILE *in, FILE *out)
 
         fwrite(buf+pos, 1, len, out);
         suff = buf[pos];
-        if (!add && prev != -1) dict_add(dict, prev, suff);
+        if (!add && prev != -1)
+            dict_add(dict, prev, suff);
     }
 
     free(bin);
@@ -64,9 +81,9 @@ int entcmp(int *, int *);
 dict_t *dict_new()
 {
     dict_t *this = malloc(sizeof(dict_t));
-    this->ent = calloc(0x1000, 2 * sizeof(int));
+    this->ent = calloc(DICTSIZE, 2 * sizeof(int));
     this->nent = 0;
-    this->htbl = htbl_new(5003, enthash, entcmp);
+    this->htbl = htbl_new(18041, enthash, entcmp);
 
     unsigned char ch = 0;
     do dict_add(this, -1, ch); while (++ch);
@@ -83,11 +100,13 @@ void dict_free(dict_t *this)
 
 void dict_add(dict_t *this, int prev, int suff)
 {
-    if (this->nent == 0x1000) return;
+    if (this->nent == DICTSIZE) return;
 
     this->ent[this->nent][Prev] = prev;
     this->ent[this->nent][Suff] = suff;
-    htbl_add(this->htbl, this->ent[this->nent++]);
+    htbl_add(this->htbl, this->ent[this->nent]);
+
+    ++this->nent;
 }
 
 int dict_find(dict_t *this, int prev, int suff)
