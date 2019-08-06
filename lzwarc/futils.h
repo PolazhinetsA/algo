@@ -11,10 +11,12 @@
 #include <sys/stat.h>
 
 FILE *fopen_mkdir(char *path, char *mode);
+FILE *fopen_nodir(char *path, char *mode);
 
 #else
 
 #define fopen_mkdir fopen
+#define fopen_nodir fopen
 
 #endif
 

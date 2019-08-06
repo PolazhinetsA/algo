@@ -18,6 +18,16 @@ FILE *fopen_mkdir(char *path, char *mode)
     return fopen(path, mode);
 }
 
+FILE *fopen_nodir(char *path, char *mode)
+{
+    struct stat s;
+    stat(path, &s);
+    if (S_ISDIR(s.st_mode))
+        return NULL;
+
+    return fopen(path, mode);
+}
+
 #endif
 
 size_t fcopy(FILE *dst, FILE *src, size_t nbytes)

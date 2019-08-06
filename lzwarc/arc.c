@@ -45,7 +45,9 @@ void archive(char **ppath)
         FILE *file, *tfile;
         uint32_t sz, sz_;
 
-        file = fopen(*ppath, "rb");
+        file = fopen_nodir(*ppath, "rb");
+        if (!file) continue;
+
         tfile = tmpfile();
         lzw_encode(file, tfile);
         sz = ftell(file);
