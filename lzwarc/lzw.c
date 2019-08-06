@@ -24,9 +24,10 @@ void lzw_encode(FILE *in, FILE *out)
 
     for (int prev, next, ch = 0, nbits = 9, stop = 0x100; ch != EOF; )
     {
-        next = -1;
-        while (EOF != (ch = fgetc(in)) &&
-                -1 != (next = dict_find(dict, prev = next, ch)));
+        for(next = -1;
+            prev = next,
+            EOF != (ch = fgetc(in)) &&
+             -1 != (next = dict_find(dict, prev, ch)); );
         if (prev >= stop) {
             bput(bout, stop, nbits);
             ++nbits;
@@ -60,8 +61,8 @@ void lzw_decode(FILE *in, FILE *out)
         int add = next == dict->nent;
         if (add) dict_add(dict, prev, suff);
 
-        unsigned char buf[0x1000];
-        int pos = 0x1000, len = 0, curr = next;
+        unsigned char buf[DICTSIZE];
+        int pos = DICTSIZE, len = 0, curr = next;
         do buf[--pos] = dict->ent[curr][Suff], ++len;
             while(-1 != (curr = dict->ent[curr][Prev]));
 

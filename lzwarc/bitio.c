@@ -1,10 +1,10 @@
 #include "bitio.h"
 
-#define UINTWID (sizeof(unsigned) * 8)
+#define UINTWID (sizeof(uint32_t) * 8)
 
 typedef struct {
     FILE *file;
-    unsigned ibuf, ipos,
+    uint32_t ibuf, ipos,
              obuf, opos;
 } bfile_t;
 
@@ -21,13 +21,13 @@ void *bopen(FILE *file)
     return this;
 }
 
-int bget(void *_this, unsigned *pbits, unsigned nbits)
+int bget(void *_this, uint32_t *pbits, uint32_t nbits)
 {
     bfile_t *this = _this;
 
     nbits = nbits <= UINTWID ? nbits : UINTWID;
     *pbits = (this->ipos < UINTWID)
-           ? (this->ibuf >> this->ipos) & ((unsigned )-1 >> (UINTWID - nbits))
+           ? (this->ibuf >> this->ipos) & ((uint32_t )-1 >> (UINTWID - nbits))
            : 0;
     this->ipos += nbits;
     if (this->ipos <= UINTWID)
@@ -35,18 +35,18 @@ int bget(void *_this, unsigned *pbits, unsigned nbits)
 
     this->ibuf = 0;
     this->ipos -= UINTWID;
-    unsigned rcnt = 8 * fread(&this->ibuf, 1, sizeof(unsigned), this->file);
+    uint32_t rcnt = 8 * fread(&this->ibuf, 1, sizeof(uint32_t), this->file);
     if (rcnt < this->ipos)
         return -1;
 
-    *pbits |= (this->ibuf & ((unsigned )-1 >> (UINTWID - this->ipos)))
+    *pbits |= (this->ibuf & ((uint32_t )-1 >> (UINTWID - this->ipos)))
               << (nbits - this->ipos);
     this->ibuf <<= UINTWID - rcnt;
     this->ipos += UINTWID - rcnt;
         return 0;
 }
 
-void bput(void *_this, unsigned bits, unsigned nbits)
+void bput(void *_this, uint32_t bits, uint32_t nbits)
 {
     bfile_t *this = _this;
 
@@ -57,7 +57,7 @@ void bput(void *_this, unsigned bits, unsigned nbits)
     if (this->opos < UINTWID)
         return;
 
-    fwrite(&this->obuf, sizeof(unsigned), 1, this->file);
+    fwrite(&this->obuf, sizeof(uint32_t), 1, this->file);
     this->opos -= UINTWID;
     this->obuf = this->opos ? bits >> (nbits - this->opos) : 0;
 }
@@ -66,6 +66,6 @@ void bflush(void *_this)
 {
     bfile_t *this = _this;
 
-    fwrite(&this->obuf, (this->ipos+7)/8, 1, this->file);
+    fwrite(&this->obuf, (this->opos+7)/8, 1, this->file);
     this->obuf = this->opos = 0;
 }

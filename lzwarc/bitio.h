@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 void *bopen  (FILE *file);
 int   bget   (void *this, unsigned *dst, unsigned len);
