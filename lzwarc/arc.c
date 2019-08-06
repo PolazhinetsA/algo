@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 
 void archive(char **ppath)
 {
-    FILE *farc = fopen(*ppath++, "wb");
+    FILE *farc = fopen(*ppath++, "ab");
     for (; *ppath; ++ppath)
     {
         FILE *file, *tfile;
