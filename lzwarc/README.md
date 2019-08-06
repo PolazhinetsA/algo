@@ -1,5 +1,7 @@
 ## Archiver with LZW-compression
 
+When built under non-UNIX-like OS, some facilities will be omited.
+
 Usage:
 
 `$ ./lzwarc a archivename file1 file2 ...` add files to archive
@@ -11,5 +13,3 @@ Usage:
 Hint:
 
 ``$ ./lzwarc a archivename `find src_dir_path` `` add all contents from source directory recursively to archive
-
-When built under non-UNIX-like OS, some facilities will be omited.
