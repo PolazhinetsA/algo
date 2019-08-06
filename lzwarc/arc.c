@@ -7,7 +7,7 @@
 #define USAGE {                                         \
     fputs("usage:\n"                                    \
           "./lzwarc a archivename file1 file2 ...\n"    \
-          "./lzwarc x archivename [dest.dir.path]\n"    \
+          "./lzwarc x archivename [dst_dir_path/]\n"    \
           "./lzwarc l archivename\n",                   \
           stderr);                                      \
     return 1;                                           \
