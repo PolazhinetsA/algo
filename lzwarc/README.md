@@ -10,6 +10,6 @@ Usage:
 
 Hint:
 
-``$ ./lzwarc a archivename `find src_dir_path` `` recursively add all contents from source directory to archive
+``$ ./lzwarc a archivename `find src_dir_path` `` add all contents from source directory recursively to archive
 
 When built under non-UNIX-like OS, some facilities will be omited.
