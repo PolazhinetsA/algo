@@ -47,7 +47,9 @@ int dnext(void *_this, char *dest)
         this->child = NULL;
 
         struct dirent *dent;
-        do dent = readdir(this->dir); while (dent && dent->d_name[0] == '.');
+        do dent = readdir(this->dir); while (dent != NULL
+                                             && (!strcmp(dent->d_name, ".")
+                                              || !strcmp(dent->d_name, "..")));
         if (dent == NULL) return 0;
 
         char path[PATH_MAX];
