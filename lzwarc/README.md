@@ -1,5 +1,7 @@
 ## Archiver with LZW-compression
 
+Linux only yet...
+
 Usage:
 
 `$ ./lzwarc a archivename item1 item2 ...` add files to archive
