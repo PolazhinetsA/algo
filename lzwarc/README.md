@@ -1,15 +1,9 @@
 ## Archiver with LZW-compression
 
-When built under non-UNIX-like OS, some facilities will be omited.
-
 Usage:
 
-`$ ./lzwarc a archivename file1 file2 ...` add files to archive
+`$ ./lzwarc a archivename item1 item2 ...` add files to archive
 
 `$ ./lzwarc x archivename [dst_dir_path/]` extract all contents from archive to destination directory (defaults to current)
 
 `$ ./lzwarc l archivename` print archive listing
-
-Hint:
-
-``$ ./lzwarc a archivename `find src_dir_path` `` add all contents from source directory recursively to archive
