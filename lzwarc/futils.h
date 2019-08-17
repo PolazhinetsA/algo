@@ -3,24 +3,14 @@
 
 #include <stdio.h>
 #include <string.h>
-
-#ifdef __unix__
-
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
 FILE *fopen_mkdir(char *path, char *mode);
-FILE *fopen_nodir(char *path, char *mode);
-
-#else
-
-#define fopen_mkdir fopen
-#define fopen_nodir fopen
-
-#endif
 
 size_t fcopy(FILE *dst, FILE *src, size_t nbytes);
+
 void fputs0(char *str, FILE *file);
 void fgets0(char *str, FILE *file);
 

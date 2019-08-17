@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include "diter.h"
 #include "futils.h"
 #include "lzw.h"
 
 #define USAGE {                                         \
     fputs("usage:\n"                                    \
-          "./lzwarc a archivename file1 file2 ...\n"    \
+          "./lzwarc a archivename item1 item2 ...\n"    \
           "./lzwarc x archivename [dst_dir_path/]\n"    \
           "./lzwarc l archivename\n",                   \
           stderr);                                      \
@@ -37,36 +38,43 @@ int main(int argc, char **argv)
     }
 }
 
-void archive(char **ppath)
+void archive(char **pdpath)
 {
-    FILE *farc = fopen(*ppath++, "ab");
-    for (; *ppath; ++ppath)
+    FILE *farc = fopen(*pdpath++, "ab");
+
+    for (; *pdpath; ++pdpath)
     {
-        FILE *file, *tfile;
-        uint32_t sz, sz_;
+        void *diter = dopen(*pdpath);
 
-        file = fopen_nodir(*ppath, "rb");
-        if (!file) continue;
+        for (char fpath[PATH_MAX]; dnext(diter, fpath); )
+        {
+            FILE *file, *tfile;
+            uint32_t sz, sz_;
 
-        tfile = tmpfile();
-        lzw_encode(file, tfile);
-        sz = ftell(file);
-        sz_ = ftell(tfile);
-        if (sz_ < sz) {
+            file = fopen(fpath, "rb");
+            if (!file) continue;
+
+            tfile = tmpfile();
+            lzw_encode(file, tfile);
+            sz = ftell(file);
+            sz_ = ftell(tfile);
+            if (sz_ < sz) {
+                fclose(file);
+                file = tfile;
+            } else {
+                fclose(tfile);
+                sz_ = sz;
+            }
+            rewind(file);
+
+            fputs0(fpath, farc);
+            fwrite(&sz, sizeof(uint32_t), 1, farc);
+            fwrite(&sz_, sizeof(uint32_t), 1, farc);
+            fcopy(farc, file, sz_);
+
             fclose(file);
-            file = tfile;
-        } else {
-            fclose(tfile);
-            sz_ = sz;
         }
-        rewind(file);
-
-        fputs0(*ppath, farc);
-        fwrite(&sz, sizeof(uint32_t), 1, farc);
-        fwrite(&sz_, sizeof(uint32_t), 1, farc);
-        fcopy(farc, file, sz_);
-
-        fclose(file);
+        dclose(diter);
     }
     fclose(farc);
 }

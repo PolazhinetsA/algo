@@ -1,7 +1,5 @@
 #include "futils.h"
 
-#ifdef __unix__
-
 FILE *fopen_mkdir(char *path, char *mode)
 {
     for(char *p = path+1, *q;
@@ -9,7 +7,7 @@ FILE *fopen_mkdir(char *path, char *mode)
         p = q + 1)
     {
         *q = '\0';
-        struct stat s;
+        struct stat s = { 0 };
         stat(path, &s);
         if (!S_ISDIR(s.st_mode))
             mkdir(path, 0777);
@@ -17,18 +15,6 @@ FILE *fopen_mkdir(char *path, char *mode)
     }
     return fopen(path, mode);
 }
-
-FILE *fopen_nodir(char *path, char *mode)
-{
-    struct stat s;
-    stat(path, &s);
-    if (S_ISDIR(s.st_mode))
-        return NULL;
-
-    return fopen(path, mode);
-}
-
-#endif
 
 size_t fcopy(FILE *dst, FILE *src, size_t nbytes)
 {
