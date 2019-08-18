@@ -5,13 +5,13 @@
 #include "futils.h"
 #include "lzw.h"
 
-#define USAGE {                                         \
-    fputs("usage:\n"                                    \
-          "./lzwarc a archivename item1 item2 ...\n"    \
-          "./lzwarc x archivename [dst_dir_path/]\n"    \
-          "./lzwarc l archivename\n",                   \
-          stderr);                                      \
-    return 1;                                           \
+#define USAGE {                                             \
+    fputs("usage:\n"                                        \
+          "./lzwarc a archivename item1 item2 ...\n"        \
+          "./lzwarc x archivename [dest_path [contents]]\n" \
+          "./lzwarc l archivename\n",                       \
+          stderr);                                          \
+    return 1;                                               \
 }
 
 void archive(char **ppath);
