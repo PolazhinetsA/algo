@@ -12,7 +12,7 @@ void *dopen(char *path)
 
     struct stat s;
     stat(path, &s);
-    if (s.st_mode & (S_IFDIR | S_IFREG)) {
+    if (S_ISDIR(s.st_mode) || S_ISREG(s.st_mode)) {
         this = malloc(sizeof(diter_t));
         this->child = NULL;
         this->dir = S_ISDIR(s.st_mode) ? opendir(path) : NULL;
