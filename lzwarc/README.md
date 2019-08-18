@@ -4,8 +4,11 @@ Linux only yet...
 
 Usage:
 
-`$ ./lzwarc a archivename item1 item2 ...` add files to archive
+`$ ./lzwarc a archivename item1 item2 ...`
+add listed items (files/directories) to archive
 
-`$ ./lzwarc x archivename [dst_dir_path/]` extract all contents from archive to destination directory (defaults to current)
+`$ ./lzwarc x archivename [dest_path/ [item1 item2 ...]]`
+extract listed items (defaults to all) to dest_path/ (defaults to current directory)
 
-`$ ./lzwarc l archivename` print archive listing
+`$ ./lzwarc l archivename`
+print archive listing
