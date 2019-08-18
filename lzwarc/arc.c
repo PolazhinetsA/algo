@@ -38,13 +38,13 @@ int main(int argc, char **argv)
     }
 }
 
-void archive(char **pdpath)
+void archive(char **ppath)
 {
-    FILE *farc = fopen(*pdpath++, "ab");
+    FILE *farc = fopen(*ppath++, "ab");
 
-    for (; *pdpath; ++pdpath)
+    for (; *ppath; ++ppath)
     {
-        void *diter = dopen(*pdpath);
+        void *diter = dopen(*ppath);
 
         for (char fpath[PATH_MAX]; dnext(diter, fpath); )
         {
@@ -81,29 +81,41 @@ void archive(char **pdpath)
 
 void extract(char **ppath)
 {
-    char path_[0x100], *_path;
-    strcpy(path_, ppath[1] ? ppath[1] : "");
-    _path = path_ + strlen(path_);
+    FILE *farc = fopen(*ppath++, "rb");
 
-    FILE *farc = fopen(ppath[0], "rb");
+    char dpath[PATH_MAX], *_path;
+    strcpy(dpath, *ppath ? *ppath : "");
+    _path = dpath + strlen(dpath);
+
+    if (*ppath) ++ppath;
+
     while (fgets0(_path, farc), *_path)
     {
-        FILE *file, *tfile;
         uint32_t sz, sz_;
-
         fread(&sz, sizeof(uint32_t), 1, farc);
         fread(&sz_, sizeof(uint32_t), 1, farc);
-        file = fopen_mkdir(path_, "wb");
-        if (sz_ < sz) {
-            tfile = tmpfile();
-            fcopy(tfile, farc, sz_);
-            rewind(tfile);
-            lzw_decode(tfile, file);
-            fclose(tfile);
-        } else {
-            fcopy(file, farc, sz_);
+
+        char **pp;
+        for (pp = ppath; *pp && memcmp(_path, *pp, strlen(*pp)); ++pp);
+        if (*pp || !*ppath)
+        {
+            FILE *file, *tfile;
+            file = fopen_mkdir(dpath, "wb");
+            if (sz_ < sz) {
+                tfile = tmpfile();
+                fcopy(tfile, farc, sz_);
+                rewind(tfile);
+                lzw_decode(tfile, file);
+                fclose(tfile);
+            } else {
+                fcopy(file, farc, sz_);
+            }
+            fclose(file);
         }
-        fclose(file);
+        else
+        {
+            fseek(farc, sz_, SEEK_CUR);
+        }
     }
     fclose(farc);
 }
