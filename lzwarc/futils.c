@@ -16,25 +16,17 @@ FILE *fopen_mkdir(char *path, char *mode)
     return fopen(path, mode);
 }
 
-size_t fcopy(FILE *dst, FILE *src, size_t nbytes)
+void fcopy(FILE *dst, FILE *src, size_t nbytes)
 {
-    char buf[0x1000];
-    size_t nread, ret;
+    while (nbytes--) fputc(fgetc(src), dst);
+}
 
-    for(nread = sizeof(buf), ret = 0;
-        nbytes >= sizeof(buf) && nread == sizeof(buf);
-        nbytes -= nread, ret += nread)
-    {
-        nread = fread(buf, 1, sizeof(buf), src);
-        fwrite(buf, 1, nread, dst);
-    }
-    if (nread == sizeof(buf)) {
-        nread = fread(buf, 1, nbytes, src);
-        fwrite(buf, 1, nread, dst);
-        ret += nread;
-    }
+void fxor(FILE *dst, FILE *src, size_t nbytes, char *key)
+{
+    if (key == NULL) return fcopy(dst, src, nbytes);
 
-    return ret;
+    size_t klen = strlen(key);
+    while (nbytes--) fputc(fgetc(src)^key[nbytes%klen], dst);
 }
 
 void fputs0(char *str, FILE *file)

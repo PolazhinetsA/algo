@@ -5,31 +5,46 @@
 #include "futils.h"
 #include "lzw.h"
 
-#define USAGE {                                                         \
-    fputs("usage:\n"                                                    \
-          "$ ./lzwarc a archivename item1 item2 ...\n"                  \
-          "$ ./lzwarc x archivename [dest_path/ [item1 item2 ...]]\n"   \
-          "$ ./lzwarc l archivename\n",                                 \
-          stderr);                                                      \
-    return 1;                                                           \
+#define USAGE {                                                               \
+    fputs(                                                                    \
+        "usage:\n"                                                            \
+        "$ ./lzwarc a archivename item1 item2 ...\n"                          \
+        "$ ./lzwarc ap password archivename item1 item2 ...\n"                \
+        "$ ./lzwarc x archivename [dest_path/ [item1 item2 ...]]\n"           \
+        "$ ./lzwarc xp password archivename [dest_path/ [item1 item2 ...]]\n" \
+        "$ ./lzwarc l archivename\n",                                         \
+        stderr);                                                              \
+    return 1;                                                                 \
 }
 
-void archive(char **ppath);
-void extract(char **ppath);
+void archive(char **ppath, char *key);
+void extract(char **ppath, char *key);
 void lstcont(char **ppath);
 
 int main(int argc, char **argv)
 {
     if (argc < 3) USAGE;
 
-    switch (*argv[1]) {
+    switch (argv[1][0]) {
         case 'a':
-            if (argc < 4) USAGE;
-            archive(argv+2);
-            break;
+            if (argv[1][1] == 'p') {
+                if (argc < 5) USAGE;
+                archive(argv+3, argv[2]);
+                break;
+            } else {
+                if (argc < 4) USAGE;
+                archive(argv+2, NULL);
+                break;
+            }
         case 'x':
-            extract(argv+2);
-            break;
+            if (argv[1][1] == 'p') {
+                if (argc < 4) USAGE;
+                extract(argv+3, argv[2]);
+                break;
+            } else {
+                extract(argv+2, NULL);
+                break;
+            }
         case 'l':
             lstcont(argv+2);
             break;
@@ -38,7 +53,7 @@ int main(int argc, char **argv)
     }
 }
 
-void archive(char **ppath)
+void archive(char **ppath, char *key)
 {
     FILE *farc = fopen(*ppath++, "ab");
 
@@ -70,7 +85,7 @@ void archive(char **ppath)
             fputs0(fpath, farc);
             fwrite(&sz, sizeof(uint32_t), 1, farc);
             fwrite(&sz_, sizeof(uint32_t), 1, farc);
-            fcopy(farc, file, sz_);
+            fxor(farc, file, sz_, key);
 
             fclose(file);
         }
@@ -79,7 +94,7 @@ void archive(char **ppath)
     fclose(farc);
 }
 
-void extract(char **ppath)
+void extract(char **ppath, char *key)
 {
     FILE *farc = fopen(*ppath++, "rb");
 
@@ -103,12 +118,12 @@ void extract(char **ppath)
             file = fopen_mkdir(dpath, "wb");
             if (sz_ < sz) {
                 tfile = tmpfile();
-                fcopy(tfile, farc, sz_);
+                fxor(tfile, farc, sz_, key);
                 rewind(tfile);
                 lzw_decode(tfile, file);
                 fclose(tfile);
             } else {
-                fcopy(file, farc, sz_);
+                fxor(file, farc, sz_, key);
             }
             fclose(file);
         }
