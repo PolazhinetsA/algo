@@ -10,12 +10,12 @@ Usage:
 
  -- add listed items (files/directories) to archive
 
-`$ ./lzwarc x archivename [dest_path/ [item1 item2 ...]]`
+`$ ./lzwarc x archivename [dest_path/ [pref1 pref2 ...]]`
 
-`$ ./lzwarc xp password archivename [dest_path/ [item1 item2 ...]]`
+`$ ./lzwarc xp password archivename [dest_path/ [pref1 pref2 ...]]`
 
--- extract listed items (defaults to all) to dest_path/ (defaults to current directory)
+-- extract items to which internal path begins with one of given prefixes (defaults to any) to dest_path/ (defaults to current directory)
 
-`$ ./lzwarc l archivename`
+`$ ./lzwarc l archivename [pref1 pref2 ...]`
 
--- print archive listing
+-- list items to which internal path begins with one of given prefixes (defaults to any)
