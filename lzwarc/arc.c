@@ -10,9 +10,9 @@
         "usage:\n"                                                            \
         "$ ./lzwarc a archivename item1 item2 ...\n"                          \
         "$ ./lzwarc ap password archivename item1 item2 ...\n"                \
-        "$ ./lzwarc x archivename [dest_path/ [item1 item2 ...]]\n"           \
-        "$ ./lzwarc xp password archivename [dest_path/ [item1 item2 ...]]\n" \
-        "$ ./lzwarc l archivename\n",                                         \
+        "$ ./lzwarc x archivename [dest_path/ [pref1 pref2 ...]]\n"           \
+        "$ ./lzwarc xp password archivename [dest_path/ [pref1 pref2 ...]]\n" \
+        "$ ./lzwarc l archivename [pref1 pref2 ...]\n",                       \
         stderr);                                                              \
     return 1;                                                                 \
 }
@@ -140,13 +140,17 @@ void lstcont(char **ppath)
     printf("original size | arhived size | path/filename\n"
            "--------------|--------------|--------------\n");
 
-    FILE *farc = fopen(ppath[0], "rb");
-    for (char name[0x100]; fgets0(name, farc), *name; )
+    FILE *farc = fopen(*ppath++, "rb");
+    for (char _path[PATH_MAX] = ""; fgets0(_path, farc), *_path; )
     {
         uint32_t sz, sz_;
         fread(&sz, sizeof(uint32_t), 1, farc);
         fread(&sz_, sizeof(uint32_t), 1, farc);
-        printf(" %12u | %12u | %s\n", sz, sz_, name);
+
+        char **pp;
+        for (pp = ppath; *pp && memcmp(_path, *pp, strlen(*pp)); ++pp);
+        if (*pp || !*ppath)
+            printf(" %12u | %12u | %s\n", sz, sz_, _path);
         fseek(farc, sz_, SEEK_CUR);
     }
     fclose(farc);
