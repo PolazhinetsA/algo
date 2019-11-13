@@ -31,6 +31,9 @@ void huffman_encode(FILE *fdst, FILE *fsrc)
     for (int ch; EOF != (ch = fgetc(fsrc)); )
         ++tree[ch].occ;
 
+    uint32_t szfile = ftell(fsrc);
+    rewind(fsrc);
+
     uint16_t tmap[0x100], nnod = 0;
     for (int ch = 0; ch < 0x100; ++ch) {
         if (tree[ch].occ) {
@@ -72,6 +75,7 @@ void huffman_encode(FILE *fdst, FILE *fsrc)
     }
     PQfree(pq);
 
+    fwrite(&szfile, sizeof(uint32_t), 1, fdst);
     writetree(tree, nnod, fdst);
 
     bitio_t bout = BITIO_INIT;
@@ -103,21 +107,21 @@ void huffman_decode(FILE *fdst, FILE *fsrc)
 {
     cnode_t tree[0x200];
     uint16_t nnod;
+    uint32_t outputlen;
 
+    fread(&outputlen, sizeof(uint32_t), 1, fsrc);
     nnod = readtree(tree, fsrc);
 
     bitio_t bin = BITIO_INIT;
     bin.file = fsrc;
 
-    while (1)
+    while (outputlen--)
     {
         uint64_t i, bit;
         for(i = nnod-1;
             tree[i].br0 != LEAF &&
             -1 != bget(&bin, &bit, 1);
             i = bit ? tree[i].br1 : tree[i].br0);
-
-        if (tree[i].br0 != LEAF) break;
 
         fputc(tree[i].ch, fdst);
     }
