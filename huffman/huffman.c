@@ -12,16 +12,13 @@ typedef struct {
     uint32_t occ;
     uint8_t  ch;
     uint8_t  bit;
-    uint16_t par, br[2];
+    uint16_t par, br0, br1;
 } node_t;
 
 typedef struct {
-    unsigned occ : 28;
     unsigned ch  :  8;
-    unsigned bit :  1;
-    unsigned par :  9;
-    unsigned br0 :  9;
-    unsigned br1 :  9;
+    unsigned br0 :  12;
+    unsigned br1 :  12;
 } cnode_t;
 
 #define nodehigher(n1, n2) (((node_t *)(n1))->occ < ((node_t *)(n2))->occ)
@@ -39,7 +36,7 @@ void huffman_encode(FILE *fdst, FILE *fsrc)
         if (tree[ch].occ) {
             tree[nnod].occ = tree[ch].occ;
             tree[nnod].ch = ch;
-            tree[nnod].br[0] = tree[nnod].br[1] = LEAF;
+            tree[nnod].br0 = tree[nnod].br1 = LEAF;
             tmap[ch] = nnod;
             ++nnod;
         }
@@ -65,8 +62,8 @@ void huffman_encode(FILE *fdst, FILE *fsrc)
         nod1->bit = 1;
         nod0->par = nod1->par = nnod;
 
-        tree[nnod].br[0] = nod0 - tree;
-        tree[nnod].br[1] = nod1 - tree;
+        tree[nnod].br0 = nod0 - tree;
+        tree[nnod].br1 = nod1 - tree;
         tree[nnod].occ = nod0->occ + nod1->occ;
 
         PQpush(pq, tree+nnod, nodehigher)
@@ -84,23 +81,27 @@ void huffman_encode(FILE *fdst, FILE *fsrc)
 
     for (int ch; EOF != (ch = fgetc(fsrc)); )
     {
-        uint64_t bits = 0, nbits = 0;
+        for (int i = tmap[ch]; tree[i].par != ROOT; )
+        {
+            uint64_t bits, nbits;
 
-        for(int i = tmap[ch];
-            tree[i].par != ROOT;
-            bits = (bits << 1) | tree[i].bit,
-            i = tree[i].par, ++nbits);
+            for(bits = 0, nbits = 0;
+                nbits < UINTWID &&
+                tree[i].par != ROOT;
+                bits = (bits << 1) | tree[i].bit,
+                i = tree[i].par, ++nbits);
 
-        bput(&bout, bits, nbits);
+            bput(&bout, bits, nbits);
+        }
     }
     bflush(&bout);
 }
 
-uint16_t readtree(node_t *tree, FILE *file);
+uint16_t readtree(cnode_t *tree, FILE *file);
 
 void huffman_decode(FILE *fdst, FILE *fsrc)
 {
-    node_t tree[0x200];
+    cnode_t tree[0x200];
     uint16_t nnod;
 
     nnod = readtree(tree, fsrc);
@@ -112,11 +113,11 @@ void huffman_decode(FILE *fdst, FILE *fsrc)
     {
         uint64_t i, bit;
         for(i = nnod-1;
-            tree[i].br[0] != LEAF &&
+            tree[i].br0 != LEAF &&
             -1 != bget(&bin, &bit, 1);
-            i = tree[i].br[bit]);
+            i = bit ? tree[i].br1 : tree[i].br0);
 
-        if (tree[i].br[0] != LEAF) break;
+        if (tree[i].br0 != LEAF) break;
 
         fputc(tree[i].ch, fdst);
     }
@@ -128,31 +129,19 @@ void writetree(node_t *tree, uint16_t nnod, FILE *file)
 
     for (int i = 0; i < nnod; ++i) {
         cnode_t cnode;
-        cnode.occ = tree[i].occ;
         cnode.ch  = tree[i].ch;
-        cnode.bit = tree[i].bit;
-        cnode.par = tree[i].par;
-        cnode.br0 = tree[i].br[0];
-        cnode.br1 = tree[i].br[1];
+        cnode.br0 = tree[i].br0;
+        cnode.br1 = tree[i].br1;
         fwrite(&cnode, sizeof(cnode_t), 1, file);
     }
 }
 
-uint16_t readtree(node_t *tree, FILE *file)
+uint16_t readtree(cnode_t *tree, FILE *file)
 {
     uint16_t nnod;
-    fread(&nnod, sizeof(uint16_t), 1, file);
 
-    for (int i = 0; i < nnod; ++i) {
-        cnode_t cnode;
-        fread(&cnode, sizeof(cnode_t), 1, file);
-        tree[i].occ   = cnode.occ;
-        tree[i].ch    = cnode.ch;
-        tree[i].bit   = cnode.bit;
-        tree[i].par   = cnode.par;
-        tree[i].br[0] = cnode.br0;
-        tree[i].br[1] = cnode.br1;
-    }
+    fread(&nnod, sizeof(uint16_t), 1, file);
+    fread(tree, sizeof(cnode_t), nnod, file);
 
     return nnod;
 }
