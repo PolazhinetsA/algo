@@ -83,7 +83,7 @@ void huffman_encode(FILE *fdst, FILE *fsrc)
 
     for (int ch; EOF != (ch = fgetc(fsrc)); )
     {
-        int bits = 0, nbits = 0;
+        uint64_t bits = 0, nbits = 0;
 
         for(int i = tmap[ch];
             tree[i].par != ROOT;
@@ -109,7 +109,7 @@ void huffman_decode(FILE *fdst, FILE *fsrc)
 
     while (1)
     {
-        int i, bit;
+        uint64_t i, bit;
         for(i = nnod-1;
             tree[i].br[0] != LEAF &&
             -1 != bget(&bin, &bit, 1);
