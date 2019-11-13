@@ -67,6 +67,7 @@ void huffman_encode(FILE *fdst, FILE *fsrc)
 
         tree[nnod].br[0] = nod0 - tree;
         tree[nnod].br[1] = nod1 - tree;
+        tree[nnod].occ = nod0->occ + nod1->occ;
 
         PQpush(pq, tree+nnod, nodehigher)
 
